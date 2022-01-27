@@ -1,6 +1,9 @@
+@file:Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+
 package com.example.guru2
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -14,6 +17,8 @@ import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
+import android.widget.Button
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -21,6 +26,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.OnRequestPermissionsResultCallback
 import androidx.core.content.ContextCompat
 import com.example.guru2.MainActivity
+import com.example.guru2.R.id.*
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -37,10 +43,13 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.snackbar.Snackbar
+import noman.googleplaces.*
+import noman.googleplaces.PlacesException
 import java.io.IOException
 import java.util.*
 
-class MainActivity : AppCompatActivity(), OnMapReadyCallback, OnRequestPermissionsResultCallback {
+class MainActivity : AppCompatActivity(), OnMapReadyCallback,
+    OnRequestPermissionsResultCallback, PlacesListener{
     private var mMap: GoogleMap? = null
     private var currentMarker: Marker? = null
     var needRequest = false
@@ -55,12 +64,21 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, OnRequestPermissio
     private var mLayout // Snackbar 사용하기 위해서는 View가 필요합니다.
             : View? = null
 
+    //음식점 표시
+    var previous_marker: MutableList<Marker>? = null
+
+    @SuppressLint("WrongViewCast")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setContentView(R.layout.activity_main)
-        mLayout = findViewById(R.id.layout_main)
+
+        previous_marker = ArrayList<Marker>()
+        val button: ImageButton = findViewById<View>(R.id.imageButton) as ImageButton
+        button.setOnClickListener(View.OnClickListener { showPlaceInformation(currentPosition) })
+
+        mLayout = findViewById(layout_main)
         locationRequest = LocationRequest()
             .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
             .setInterval(UPDATE_INTERVAL_MS.toLong())
@@ -69,7 +87,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, OnRequestPermissio
         builder.addLocationRequest(locationRequest)
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         val mapFragment: SupportMapFragment? = supportFragmentManager
-            .findFragmentById(R.id.map) as SupportMapFragment?
+            .findFragmentById(map) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
     }
 
@@ -370,4 +388,53 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, OnRequestPermissio
         // onRequestPermissionsResult에서 수신된 결과에서 ActivityCompat.requestPermissions를 사용한 퍼미션 요청을 구별하기 위해 사용됩니다.
         private const val PERMISSIONS_REQUEST_CODE = 100
     }
+
+    //음식점 표시
+    override fun onPlacesFailure(e: PlacesException?) {}
+
+    override fun onPlacesStart() {}
+
+    override fun onPlacesSuccess(places: List<Place>) {
+        runOnUiThread {
+            for (place in places) {
+                val latLng = LatLng(place.getLatitude()
+                    , place.getLongitude())
+                val markerSnippet = getCurrentAddress(latLng)
+                val markerOptions = MarkerOptions()
+                markerOptions.position(latLng)
+                markerOptions.title(place.getName())
+                markerOptions.snippet(markerSnippet)
+                val item: Marker = mMap!!.addMarker(markerOptions);  //?추가함.
+                previous_marker?.add(item)  //변경
+            }
+
+            //중복 마커 제거
+            val hashSet: HashSet<Marker> = HashSet<Marker>()
+            hashSet.addAll(previous_marker!!)
+            previous_marker!!.clear()
+            previous_marker!!.addAll(hashSet)
+        }
+    }
+
+    override fun onPlacesFinished() {}
+
+    fun showPlaceInformation(location: LatLng?) {
+        mMap!!.clear() //지도 클리어
+
+        if (previous_marker != null)
+            previous_marker!!.clear() //지역정보 마커 클리어
+
+        if (location != null) {
+            NRPlaces.Builder()
+                .listener(this@MainActivity)
+                .key("AIzaSyCeF36HIWVqpfFqoD0sMk5uA-465JFQ9z8")
+                .latlng(location.latitude, location.longitude) //현재 위치
+                .radius(500) //500 미터 내에서 검색
+                .type(PlaceType.RESTAURANT) //음식점
+                .build()
+                .execute()
+        }
+    }
+
+
 }
