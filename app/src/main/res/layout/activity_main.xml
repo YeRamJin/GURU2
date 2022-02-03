@@ -30,6 +30,22 @@
             android:layout_marginBottom="10dp"
             android:layout_weight="1"
             app:srcCompat="@drawable/googleg_standard_color_18" />
+
+        <Button
+            android:id="@+id/main_title"
+            android:layout_width="422dp"
+            android:layout_height="60dp"
+            android:background="#ffffff"
+            android:fontFamily="@font/applegothicneoeb"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:text="내 위치 주변"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textColor="@color/black_2"
+            android:textSize="18sp"
+            app:iconPadding="0dp"
+            app:strokeColor="#DADADA"
+            app:strokeWidth="1dp" />
     </FrameLayout>
 
 
