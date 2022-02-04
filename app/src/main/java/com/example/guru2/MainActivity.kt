@@ -49,7 +49,8 @@ import java.io.IOException
 import java.util.*
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback,
-    OnRequestPermissionsResultCallback, PlacesListener{
+    OnRequestPermissionsResultCallback, PlacesListener {
+//    , GoogleMap.OnMarkerClickListener {     --> 마커 클릭이벤트 함수 오류발생으로 주석 처리
     private var mMap: GoogleMap? = null
     private var currentMarker: Marker? = null
     var needRequest = false
@@ -154,6 +155,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                 Log.d(TAG, "onMapClick :")
             }
         })
+
+        //마커 클릭 이벤트를 위해 생성 -> 함수는 밑에 있음
+//        mMap?.setOnMarkerClickListener(this)
     }
         //서울 태그하는 코드
 //        val SEOUL = LatLng(37.56, 126.97)
@@ -277,7 +281,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
     fun setDefaultLocation() {
 
-
         //디폴트 위치, Seoul
         val DEFAULT_LOCATION = LatLng(37.56, 126.97)
         val markerTitle = "위치정보 가져올 수 없음"
@@ -285,8 +288,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         if (currentMarker != null) currentMarker?.remove()
         val markerOptions = MarkerOptions()
         markerOptions.position(DEFAULT_LOCATION)
-        markerOptions.title(markerTitle)
-        markerOptions.snippet(markerSnippet)
+        markerOptions.title(markerTitle) //마커 클릭시 나타나는 말풍선 타이틀
+        markerOptions.snippet(markerSnippet) // 말풍선 설명 부분
         markerOptions.draggable(true)
         markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
         currentMarker = mMap?.addMarker(markerOptions)
@@ -436,6 +439,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                 .execute()
         }
     }
+
+    //마커 클릭이벤트 위해 생성 -> 그러나 실행시 마커의 말풍선이 나타나지 않는 오류 발생으로 주석 처리
+//    override fun onMarkerClick(marker: Marker): Boolean {
+//        var resName = marker.getTitle()
+//        var resPosition = marker.getPosition()
+//        Log.d(TAG, "name : $resName   address : $resPosition")
+//        Toast.makeText(this, "${resName} + \n + ${resPosition}", Toast.LENGTH_LONG).show()
+//
+//        return true
+//    }
 
 
 }
