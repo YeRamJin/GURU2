@@ -156,7 +156,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
             }
         })
 
-        //마커 클릭 이벤트를 위해 생성 -> 함수는 밑에 있음
+        //마커 클릭 이벤트를 위해 생성 -> 함수는 밑에 있음 -> 오류로 주석처리
 //        mMap?.setOnMarkerClickListener(this)
     }
         //서울 태그하는 코드
@@ -174,6 +174,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 //        //mMap.animateCamera(CameraUpdateFactory.zoomTo(10));
 //        mMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(SEOUL, 10F))
 
+    //현위치 나타내기 위한
     var locationCallback: LocationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
             super.onLocationResult(locationResult)
@@ -194,6 +195,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         }
     }
 
+    //위치 업데이트
     private fun startLocationUpdates() {
         if (!checkLocationServicesStatus()) {
             Log.d(TAG, "startLocationUpdates : call showDialogForLocationServiceSetting")
@@ -214,6 +216,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         }
     }
 
+    //현위치 정보 가져온 경우
     override fun onStart() {
         super.onStart()
         Log.d(TAG, "onStart")
@@ -224,6 +227,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         }
     }
 
+    //현위치 정보 나타나지 않는 경우
     override fun onStop() {
         super.onStop()
         if (mFusedLocationClient != null) {
@@ -252,7 +256,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         }
         return if (addresses == null || addresses.size == 0) {
             Toast.makeText(this, "주소 미발견", Toast.LENGTH_LONG).show()
-            "주소 미발견"
+            "주소 미발견 $addresses"
         } else {
             val address = addresses[0]
             address.getAddressLine(0).toString()
@@ -276,7 +280,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         currentMarker = mMap?.addMarker(markerOptions)
         val cameraUpdate: CameraUpdate = CameraUpdateFactory.newLatLng(currentLatLng)
         mMap?.moveCamera(cameraUpdate)
-
     }
 
     fun setDefaultLocation() {
@@ -288,8 +291,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         if (currentMarker != null) currentMarker?.remove()
         val markerOptions = MarkerOptions()
         markerOptions.position(DEFAULT_LOCATION)
-        markerOptions.title(markerTitle) //마커 클릭시 나타나는 말풍선 타이틀
-        markerOptions.snippet(markerSnippet) // 말풍선 설명 부분
+        markerOptions.title(markerTitle)
+        markerOptions.snippet(markerSnippet)
         markerOptions.draggable(true)
         markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
         currentMarker = mMap?.addMarker(markerOptions)
@@ -406,8 +409,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                 val markerSnippet = getCurrentAddress(latLng)
                 val markerOptions = MarkerOptions()
                 markerOptions.position(latLng)
-                markerOptions.title(place.getName())
-                markerOptions.snippet(markerSnippet)
+                markerOptions.title(place.getName()) // 마커 말풍선 제목 부분
+                markerOptions.snippet(markerSnippet) // 마커 말풍선 설명 부분
                 val item: Marker = mMap!!.addMarker(markerOptions);  //?추가함.
                 previous_marker?.add(item)  //변경
             }
