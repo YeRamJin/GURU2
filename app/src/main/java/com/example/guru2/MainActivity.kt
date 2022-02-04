@@ -9,8 +9,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.BitmapFactory
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
@@ -20,7 +20,9 @@ import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.View
+import android.view.Window
 import android.view.WindowManager
+import android.widget.Button
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -38,6 +40,7 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.snackbar.Snackbar
 import noman.googleplaces.*
+import noman.googleplaces.PlacesException
 import java.io.IOException
 import java.util.*
 
@@ -47,8 +50,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
     private var mMap: GoogleMap? = null
     private var currentMarker: Marker? = null
     var needRequest = false
-
-
 
     // 앱을 실행하기 위해 필요한 퍼미션을 정의합니다.
     var REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION) // 외부 저장소
@@ -60,10 +61,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
     private var mLayout // Snackbar 사용하기 위해서는 View가 필요합니다.
             : View? = null
 
-
-
     //음식점 표시
     var previous_marker: MutableList<Marker>? = null
+
+    //북마크 팝업창을 위해
+    private var dilaog01: AlertDialog? = null
 
     @SuppressLint("WrongViewCast")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -87,6 +89,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         val mapFragment: SupportMapFragment? = supportFragmentManager
             .findFragmentById(map) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
+
+        //북마크 팝업창
+        dilaog01?.requestWindowFeature(Window.FEATURE_NO_TITLE) // 타이틀 제거
+        dilaog01?.setContentView(R.layout.dilaog01) //XML 파일과 연결
+
+        //말풍선 클릭시 북마크 팝업창 띄우기
+//        findViewById<ImageButton>(R.id.bookmarkBtn).setOnClickListener(View.OnClickListener {
+//            fun OnClick(view: View) {
+//                showDialog01();
+//            }
+//        })
     }
 
     override fun onMapReady(googleMap: GoogleMap?) {
@@ -157,7 +170,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
         //마커 클릭 이벤트를 위해 생성 -> 함수는 밑에 있음 -> 오류로 주석처리
 //        mMap?.setOnMarkerClickListener(this)
-
     }
         //서울 태그하는 코드
 //        val SEOUL = LatLng(37.56, 126.97)
@@ -168,8 +180,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 //        mMap?.addMarker(markerOptions)
 //
 //
-
-
 //        // 기존에 사용하던 다음 2줄은 문제가 있습니다.
 //        // CameraUpdateFactory.zoomTo가 오동작하네요.
 //        //mMap.moveCamera(CameraUpdateFactory.newLatLng(SEOUL));
@@ -312,8 +322,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         currentMarker = mMap?.addMarker(markerOptions)
         val cameraUpdate: CameraUpdate = CameraUpdateFactory.newLatLngZoom(DEFAULT_LOCATION, 15F)
         mMap?.moveCamera(cameraUpdate)
-
-
     }
 
     //여기부터는 런타임 퍼미션 처리을 위한 메소드들
@@ -435,13 +443,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                 markerOptions.icon(BitmapDescriptorFactory.fromBitmap(smallMarker))
 
                 val item: Marker = mMap!!.addMarker(markerOptions);  //?추가함.
-
-
                 previous_marker?.add(item)  //변경
             }
-
-
-
 
             //중복 마커 제거
             val hashSet: HashSet<Marker> = HashSet<Marker>()
@@ -450,8 +453,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
             previous_marker!!.addAll(hashSet)
         }
     }
-
-
 
     override fun onPlacesFinished() {}
 
@@ -464,7 +465,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         if (location != null) {
             NRPlaces.Builder()
                 .listener(this@MainActivity)
-                .key("AIzaSyBFvuy9GvbvQm31VANYf7FXI3jWj_Ej3B4")
+                .key("AIzaSyCeF36HIWVqpfFqoD0sMk5uA-465JFQ9z8")
                 .latlng(location.latitude, location.longitude) //현재 위치
                 .radius(700) //500 미터 내에서 검색
                 .type(PlaceType.RESTAURANT) //음식점
@@ -473,11 +474,45 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         }
     }
 
+    //마커 정보 저장하기 위해 전역변수 생성
+    var markerID = ""
+    var markerLoc = LatLng(0.0,0.0)
+
+    // 말풍선 클릭시
     override fun onInfoWindowClick(marker: Marker) {
-        var markerID = marker.getId()
-        Toast.makeText(this, "정보창 클릭 Marker ID : $markerID",
+        markerID = marker.getId()
+        markerLoc = marker.getPosition()
+        Toast.makeText(this, "정보창 클릭 Marker ID : $markerID ,,, $markerLoc",
             Toast.LENGTH_SHORT).show()
+        val bookdlg = bookmark_activity(this)
+        bookdlg.start(marker)
+        //showDialog01()  //여기에 매개변수로 마커 추가해서 위도 경도 사용하지 않고 this로 구현 시도해볼것.
     }
+
+    //북마크 팝업창 띄우기
+    /*
+    fun showDialog01(){
+        dilaog01?.show()
+
+        //북마크 추가 버튼 클릭시 마커 색상 변경 - 클릭된 마커 위도 경도 활용
+        var bookBtn: ImageButton? = dilaog01?.findViewById<ImageButton>(R.id.bookmarkBtn)
+        bookBtn?.setOnClickListener(View.OnClickListener {
+            fun onClick(view: View) {
+                var bitmapdraw = resources.getDrawable(R.drawable.button04) as BitmapDrawable
+                var b: Bitmap = bitmapdraw.bitmap
+                val smallMarker: Bitmap = Bitmap.createScaledBitmap(b, 80,80, false)
+                val bookmark00 = mMap?.addMarker(
+                    MarkerOptions()
+                        .position(markerLoc)
+                        .icon(BitmapDescriptorFactory.fromBitmap(smallMarker))
+                )
+                // 팝업창 닫기
+                dilaog01?.dismiss()
+                Toast.makeText(this, "북마크에 추가 되었습니다.",
+                    Toast.LENGTH_SHORT).show()
+            }
+        })
+    }*/
 
     //마커 클릭이벤트 위해 생성 -> 그러나 실행시 마커의 말풍선이 나타나지 않는 오류 발생으로 주석 처리
 //    override fun onMarkerClick(marker: Marker): Boolean {
