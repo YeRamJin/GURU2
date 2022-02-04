@@ -12,13 +12,22 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.GURU2" >
+
+        <activity android:name=".SplashActivity"
+            android:theme="@style/SplashTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
         <activity
             android:name=".bookmark_activity"
             android:exported="false" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAOg43qF_-sIBV9GE5r15tDCQWmTNAjwp8" />
+            android:value="AIzaSyCVqn3RyuYWMA85PlEJ7wEuXc2CCsdKTPo" />
 
         <activity android:name=".MainActivity" >
             <intent-filter>
