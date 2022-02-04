@@ -4,9 +4,13 @@ package com.example.guru2
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.WallpaperColors.fromBitmap
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
@@ -17,7 +21,6 @@ import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
-import android.widget.Button
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -25,26 +28,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.OnRequestPermissionsResultCallback
 import androidx.core.content.ContextCompat
-import com.example.guru2.MainActivity
-import com.example.guru2.R.id.*
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.LocationSettingsRequest
-import com.google.android.gms.maps.CameraUpdate
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
+import com.example.guru2.R.id.layout_main
+import com.example.guru2.R.id.map
+import com.google.android.gms.location.*
+import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.snackbar.Snackbar
 import noman.googleplaces.*
-import noman.googleplaces.PlacesException
 import java.io.IOException
 import java.util.*
 
@@ -55,6 +48,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
     private var currentMarker: Marker? = null
     var needRequest = false
 
+
+
     // 앱을 실행하기 위해 필요한 퍼미션을 정의합니다.
     var REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION) // 외부 저장소
     var mCurrentLocatiion: Location? = null
@@ -64,6 +59,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
     private var location: Location? = null
     private var mLayout // Snackbar 사용하기 위해서는 View가 필요합니다.
             : View? = null
+
+
 
     //음식점 표시
     var previous_marker: MutableList<Marker>? = null
@@ -160,6 +157,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
         //마커 클릭 이벤트를 위해 생성 -> 함수는 밑에 있음 -> 오류로 주석처리
 //        mMap?.setOnMarkerClickListener(this)
+
     }
         //서울 태그하는 코드
 //        val SEOUL = LatLng(37.56, 126.97)
@@ -170,6 +168,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 //        mMap?.addMarker(markerOptions)
 //
 //
+
+
 //        // 기존에 사용하던 다음 2줄은 문제가 있습니다.
 //        // CameraUpdateFactory.zoomTo가 오동작하네요.
 //        //mMap.moveCamera(CameraUpdateFactory.newLatLng(SEOUL));
@@ -280,6 +280,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         markerOptions.title(markerTitle)
         markerOptions.snippet(markerSnippet)
         markerOptions.draggable(true)
+        //현재 위치 버튼이미지
+        val bitmapdraw = resources.getDrawable(R.drawable.button03) as BitmapDrawable
+        val b: Bitmap = bitmapdraw.bitmap
+        val smallMarker: Bitmap = Bitmap.createScaledBitmap(b, 80, 80, false)
+        markerOptions.icon(BitmapDescriptorFactory.fromBitmap(smallMarker))
+
+
+
         currentMarker = mMap?.addMarker(markerOptions)
         val cameraUpdate: CameraUpdate = CameraUpdateFactory.newLatLng(currentLatLng)
         mMap?.moveCamera(cameraUpdate)
@@ -298,10 +306,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         markerOptions.title(markerTitle)
         markerOptions.snippet(markerSnippet)
         markerOptions.draggable(true)
-        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+
+
         currentMarker = mMap?.addMarker(markerOptions)
         val cameraUpdate: CameraUpdate = CameraUpdateFactory.newLatLngZoom(DEFAULT_LOCATION, 15F)
         mMap?.moveCamera(cameraUpdate)
+
+
     }
 
     //여기부터는 런타임 퍼미션 처리을 위한 메소드들
@@ -415,9 +427,21 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                 markerOptions.position(latLng)
                 markerOptions.title(place.getName()) // 마커 말풍선 제목 부분
                 markerOptions.snippet(markerSnippet) // 마커 말풍선 설명 부분
+
+                //음식점 마커 이미지
+                val bitmapdraw = resources.getDrawable(R.drawable.button05) as BitmapDrawable
+                val b: Bitmap = bitmapdraw.bitmap
+                val smallMarker: Bitmap = Bitmap.createScaledBitmap(b, 80, 80, false)
+                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(smallMarker))
+
                 val item: Marker = mMap!!.addMarker(markerOptions);  //?추가함.
+
+
                 previous_marker?.add(item)  //변경
             }
+
+
+
 
             //중복 마커 제거
             val hashSet: HashSet<Marker> = HashSet<Marker>()
@@ -426,6 +450,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
             previous_marker!!.addAll(hashSet)
         }
     }
+
+
 
     override fun onPlacesFinished() {}
 
@@ -438,9 +464,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         if (location != null) {
             NRPlaces.Builder()
                 .listener(this@MainActivity)
-                .key("AIzaSyCeF36HIWVqpfFqoD0sMk5uA-465JFQ9z8")
+                .key("AIzaSyBFvuy9GvbvQm31VANYf7FXI3jWj_Ej3B4")
                 .latlng(location.latitude, location.longitude) //현재 위치
-                .radius(500) //500 미터 내에서 검색
+                .radius(700) //500 미터 내에서 검색
                 .type(PlaceType.RESTAURANT) //음식점
                 .build()
                 .execute()
