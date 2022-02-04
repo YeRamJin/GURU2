@@ -49,7 +49,7 @@ import java.io.IOException
 import java.util.*
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback,
-    OnRequestPermissionsResultCallback, PlacesListener {
+    OnRequestPermissionsResultCallback, PlacesListener, GoogleMap.OnInfoWindowClickListener{
 //    , GoogleMap.OnMarkerClickListener {     --> 마커 클릭이벤트 함수 오류발생으로 주석 처리
     private var mMap: GoogleMap? = null
     private var currentMarker: Marker? = null
@@ -155,6 +155,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                 Log.d(TAG, "onMapClick :")
             }
         })
+
+        mMap?.setOnInfoWindowClickListener(this)
 
         //마커 클릭 이벤트를 위해 생성 -> 함수는 밑에 있음 -> 오류로 주석처리
 //        mMap?.setOnMarkerClickListener(this)
@@ -269,6 +271,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                 || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER))
     }
 
+    //현재 위치에 마커 생성
     fun setCurrentLocation(location: Location?, markerTitle: String?, markerSnippet: String?) {
         if (currentMarker != null) currentMarker?.remove()
         val currentLatLng = LatLng(location!!.latitude, location.longitude)
@@ -282,6 +285,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         mMap?.moveCamera(cameraUpdate)
     }
 
+    // 디폴트 위치
     fun setDefaultLocation() {
 
         //디폴트 위치, Seoul
@@ -401,7 +405,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
     override fun onPlacesStart() {}
 
-    override fun onPlacesSuccess(places: List<Place>) {
+    override fun onPlacesSuccess( places: List<Place>) {
         runOnUiThread {
             for (place in places) {
                 val latLng = LatLng(place.getLatitude()
@@ -441,6 +445,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                 .build()
                 .execute()
         }
+    }
+
+    override fun onInfoWindowClick(marker: Marker) {
+        var markerID = marker.getId()
+        Toast.makeText(this, "정보창 클릭 Marker ID : $markerID",
+            Toast.LENGTH_SHORT).show()
     }
 
     //마커 클릭이벤트 위해 생성 -> 그러나 실행시 마커의 말풍선이 나타나지 않는 오류 발생으로 주석 처리
