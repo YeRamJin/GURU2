@@ -272,6 +272,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         currentMarker = mMap?.addMarker(markerOptions)
         val cameraUpdate: CameraUpdate = CameraUpdateFactory.newLatLng(currentLatLng)
         mMap?.moveCamera(cameraUpdate)
+
     }
 
     fun setDefaultLocation() {

@@ -23,17 +23,17 @@
         <ImageButton
             android:id="@+id/imageButton"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="95dp"
             android:layout_gravity="bottom"
-            android:layout_marginLeft="30dp"
-            android:layout_marginRight="30dp"
-            android:layout_marginBottom="10dp"
+            android:layout_marginBottom="20dp"
             android:layout_weight="1"
-            app:srcCompat="@drawable/googleg_standard_color_18" />
+            android:clickable="true"
+            android:scaleType="fitCenter"
+            android:src="@drawable/button09" />
 
         <Button
             android:id="@+id/main_title"
-            android:layout_width="422dp"
+            android:layout_width="match_parent"
             android:layout_height="60dp"
             android:background="#ffffff"
             android:fontFamily="@font/applegothicneoeb"
@@ -46,6 +46,17 @@
             app:iconPadding="0dp"
             app:strokeColor="#DADADA"
             app:strokeWidth="1dp" />
+
+        <ImageButton
+            android:id="@+id/bookmark"
+            android:layout_width="170dp"
+            android:layout_height="72.96dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="75dp"
+            android:scaleType="fitCenter"
+            android:background="@drawable/button113"/>
+
+
     </FrameLayout>
 
 
