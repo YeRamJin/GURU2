@@ -4,13 +4,12 @@ package com.example.guru2
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.WallpaperColors.fromBitmap
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
-import android.graphics.BitmapFactory
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
@@ -20,18 +19,15 @@ import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.View
-import android.view.Window
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.OnRequestPermissionsResultCallback
 import androidx.core.content.ContextCompat
-import com.example.guru2.R.id.layout_main
-import com.example.guru2.R.id.map
+import com.example.guru2.R.id.*
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
@@ -58,14 +54,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
     private var mFusedLocationClient: FusedLocationProviderClient? = null
     private var locationRequest: LocationRequest? = null
     private var location: Location? = null
-    private var mLayout // Snackbar 사용하기 위해서는 View가 필요합니다.
+    private var mLayout
             : View? = null
 
     //음식점 표시
     var previous_marker: MutableList<Marker>? = null
-
-    //북마크 팝업창을 위해
-    private var dilaog01: AlertDialog? = null
 
     @SuppressLint("WrongViewCast")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,7 +68,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         setContentView(R.layout.activity_main)
 
         previous_marker = ArrayList<Marker>()
-        val button: ImageButton = findViewById<View>(R.id.imageButton) as ImageButton
+        val button: ImageButton = findViewById<View>(R.id.searchButton) as ImageButton
         button.setOnClickListener(View.OnClickListener { showPlaceInformation(currentPosition) })
 
         mLayout = findViewById(layout_main)
@@ -90,16 +83,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
             .findFragmentById(map) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
 
-        //북마크 팝업창
-        dilaog01?.requestWindowFeature(Window.FEATURE_NO_TITLE) // 타이틀 제거
-        dilaog01?.setContentView(R.layout.dilaog01) //XML 파일과 연결
-
-        //말풍선 클릭시 북마크 팝업창 띄우기
-//        findViewById<ImageButton>(R.id.bookmarkBtn).setOnClickListener(View.OnClickListener {
-//            fun OnClick(view: View) {
-//                showDialog01();
-//            }
-//        })
     }
 
     override fun onMapReady(googleMap: GoogleMap?) {
@@ -157,34 +140,19 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
             }
         }
         mMap?.getUiSettings()?.setMyLocationButtonEnabled(true)
-        // 현재 오동작을 해서 주석처리
 
-        //mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
         mMap?.setOnMapClickListener(object : GoogleMap.OnMapClickListener {
             override fun onMapClick(latLng: LatLng?) {
                 Log.d(TAG, "onMapClick :")
             }
         })
 
-        mMap?.setOnInfoWindowClickListener(this)
+        //말풍선(마커 설명창) 클릭시
+        mMap?.setOnInfoWindowClickListener(this@MainActivity)
 
         //마커 클릭 이벤트를 위해 생성 -> 함수는 밑에 있음 -> 오류로 주석처리
-//        mMap?.setOnMarkerClickListener(this)
+        //mMap?.setOnMarkerClickListener(this)
     }
-        //서울 태그하는 코드
-//        val SEOUL = LatLng(37.56, 126.97)
-//        val markerOptions = MarkerOptions()
-//        markerOptions.position(SEOUL)
-//        markerOptions.title("서울")
-//        markerOptions.snippet("한국의 수도")
-//        mMap?.addMarker(markerOptions)
-//
-//
-//        // 기존에 사용하던 다음 2줄은 문제가 있습니다.
-//        // CameraUpdateFactory.zoomTo가 오동작하네요.
-//        //mMap.moveCamera(CameraUpdateFactory.newLatLng(SEOUL));
-//        //mMap.animateCamera(CameraUpdateFactory.zoomTo(10));
-//        mMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(SEOUL, 10F))
 
     //현위치 나타내기 위한
     var locationCallback: LocationCallback = object : LocationCallback() {
@@ -258,20 +226,21 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                 latlng!!.latitude,
                 latlng!!.longitude,
                 1)
+
         } catch (ioException: IOException) {
             //네트워크 문제
             Toast.makeText(this, "지오코더 서비스 사용불가", Toast.LENGTH_LONG).show()
             return "지오코더 서비스 사용불가"
+
         } catch (illegalArgumentException: IllegalArgumentException) {
             Toast.makeText(this, "잘못된 GPS 좌표", Toast.LENGTH_LONG).show()
             return "잘못된 GPS 좌표"
         }
-        return if (addresses == null || addresses.size == 0) {
-            Toast.makeText(this, "주소 미발견", Toast.LENGTH_LONG).show()
-            "주소 미발견 $addresses"
+        if (addresses == null || addresses.size == 0) {
+            return "---"
         } else {
             val address = addresses[0]
-            address.getAddressLine(0).toString()
+            return address.getAddressLine(0).toString()
         }
     }
 
@@ -293,10 +262,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         //현재 위치 버튼이미지
         val bitmapdraw = resources.getDrawable(R.drawable.button03) as BitmapDrawable
         val b: Bitmap = bitmapdraw.bitmap
-        val smallMarker: Bitmap = Bitmap.createScaledBitmap(b, 80, 80, false)
+        val smallMarker: Bitmap = Bitmap.createScaledBitmap(b, 70, 90, false)
         markerOptions.icon(BitmapDescriptorFactory.fromBitmap(smallMarker))
-
-
 
         currentMarker = mMap?.addMarker(markerOptions)
         val cameraUpdate: CameraUpdate = CameraUpdateFactory.newLatLng(currentLatLng)
@@ -439,11 +406,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                 //음식점 마커 이미지
                 val bitmapdraw = resources.getDrawable(R.drawable.button05) as BitmapDrawable
                 val b: Bitmap = bitmapdraw.bitmap
-                val smallMarker: Bitmap = Bitmap.createScaledBitmap(b, 80, 80, false)
+                val smallMarker: Bitmap = Bitmap.createScaledBitmap(b, 70, 90, false)
                 markerOptions.icon(BitmapDescriptorFactory.fromBitmap(smallMarker))
 
-                val item: Marker = mMap!!.addMarker(markerOptions);  //?추가함.
-                previous_marker?.add(item)  //변경
+                val item: Marker = mMap!!.addMarker(markerOptions)
+                previous_marker?.add(item)
             }
 
             //중복 마커 제거
@@ -475,54 +442,64 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
     }
 
     //마커 정보 저장하기 위해 전역변수 생성
-    var markerID = ""
+//    var markerID = ""
     var markerLoc = LatLng(0.0,0.0)
 
     // 말풍선 클릭시
     override fun onInfoWindowClick(marker: Marker) {
-        markerID = marker.getId()
+//        markerID = marker.getId()
         markerLoc = marker.getPosition()
-        Toast.makeText(this, "정보창 클릭 Marker ID : $markerID ,,, $markerLoc",
-            Toast.LENGTH_SHORT).show()
-        val bookdlg = bookmark_activity(this)
-        bookdlg.start(marker)
+//        Toast.makeText(this, "정보창 클릭 Marker ID : $markerID ,,, $markerLoc",
+//            Toast.LENGTH_SHORT).show()
+//        val bookdlg = bookmark_activity()
+//        bookdlg.start(marker)
         //showDialog01()  //여기에 매개변수로 마커 추가해서 위도 경도 사용하지 않고 this로 구현 시도해볼것.
+        dilaog01(marker)
     }
 
-    //북마크 팝업창 띄우기
-    /*
-    fun showDialog01(){
-        dilaog01?.show()
+    fun dilaog01(marker: Marker) {
+        val bookLayout = layoutInflater.inflate(R.layout.dilaog01,null)
+        val build = AlertDialog.Builder(this).apply {
+            setView(bookLayout)
+        }
+        val dilaog01 = build.create()
+        dilaog01.show()
 
-        //북마크 추가 버튼 클릭시 마커 색상 변경 - 클릭된 마커 위도 경도 활용
-        var bookBtn: ImageButton? = dilaog01?.findViewById<ImageButton>(R.id.bookmarkBtn)
-        bookBtn?.setOnClickListener(View.OnClickListener {
-            fun onClick(view: View) {
+        val markerOptions = MarkerOptions()
+
+        var bookBtn: ImageButton? = dilaog01.findViewById<ImageButton>(R.id.bookmarkBtn00)
+
+        bookBtn!!.setOnClickListener(View.OnClickListener() {
+                /*//테스트하기 위함
+                Toast.makeText(this, "버튼 눌림 Marker Location : ,,, $markerLoc",
+                    Toast.LENGTH_SHORT).show()*/
+
                 var bitmapdraw = resources.getDrawable(R.drawable.button04) as BitmapDrawable
                 var b: Bitmap = bitmapdraw.bitmap
-                val smallMarker: Bitmap = Bitmap.createScaledBitmap(b, 80,80, false)
+                val smallMarker: Bitmap = Bitmap.createScaledBitmap(b, 70,90, false)
+
                 val bookmark00 = mMap?.addMarker(
                     MarkerOptions()
                         .position(markerLoc)
-                        .icon(BitmapDescriptorFactory.fromBitmap(smallMarker))
-                )
+                        .icon(BitmapDescriptorFactory.fromBitmap(smallMarker)))
+
                 // 팝업창 닫기
-                dilaog01?.dismiss()
+                dilaog01.dismiss()
                 Toast.makeText(this, "북마크에 추가 되었습니다.",
                     Toast.LENGTH_SHORT).show()
-            }
         })
-    }*/
+    }
 
-    //마커 클릭이벤트 위해 생성 -> 그러나 실행시 마커의 말풍선이 나타나지 않는 오류 발생으로 주석 처리
-//    override fun onMarkerClick(marker: Marker): Boolean {
-//        var resName = marker.getTitle()
-//        var resPosition = marker.getPosition()
-//        Log.d(TAG, "name : $resName   address : $resPosition")
-//        Toast.makeText(this, "${resName} + \n + ${resPosition}", Toast.LENGTH_LONG).show()
-//
-//        return true
-//    }
+
+    /*마커 클릭이벤트 위해 생성 -> 그러나 실행시 마커의 말풍선이 나타나지 않는 오류 발생으로 주석 처리
+    override fun onMarkerClick(marker: Marker): Boolean {
+        var resName = marker.getTitle()
+        var resPosition = marker.getPosition()
+        Log.d(TAG, "name : $resName   address : $resPosition")
+        Toast.makeText(this, "${resName} + \n + ${resPosition}", Toast.LENGTH_LONG).show()
+
+        return true
+    }*/
 
 
 }

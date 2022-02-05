@@ -20,7 +20,7 @@
           tools:context=".MapsActivity" />
 
         <ImageButton
-            android:id="@+id/imageButton"
+            android:id="@+id/searchButton"
             android:layout_width="match_parent"
             android:layout_height="95dp"
             android:layout_gravity="bottom"
