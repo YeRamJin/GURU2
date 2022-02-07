@@ -6,9 +6,11 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
 import android.location.Address
 import android.location.Geocoder
@@ -20,14 +22,14 @@ import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
-import android.widget.Button
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.OnRequestPermissionsResultCallback
 import androidx.core.content.ContextCompat
-import com.example.guru2.R.id.*
+import com.example.guru2.R.id.layout_main
+import com.example.guru2.R.id.map
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
@@ -36,7 +38,6 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.snackbar.Snackbar
 import noman.googleplaces.*
-import noman.googleplaces.PlacesException
 import java.io.IOException
 import java.util.*
 
@@ -229,7 +230,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
         } catch (ioException: IOException) {
             //네트워크 문제
-            Toast.makeText(this, "지오코더 서비스 사용불가", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "데이터 네트워크 연결 실패", Toast.LENGTH_LONG).show()
             return "지오코더 서비스 사용불가"
 
         } catch (illegalArgumentException: IllegalArgumentException) {
@@ -347,7 +348,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
     //여기부터는 GPS 활성화를 위한 메소드들
     private fun showDialogForLocationServiceSetting() {
-        val builder = AlertDialog.Builder(this@MainActivity)
+        val builder = AlertDialog.Builder(this@MainActivity, R.style.AlertDialogTheme)
         builder.setTitle("위치 서비스 비활성화")
         builder.setMessage("""
     앱을 사용하기 위해서는 위치 서비스가 필요합니다.
@@ -359,6 +360,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
             startActivityForResult(callGPSSettingIntent, GPS_ENABLE_REQUEST_CODE)
         }
         builder.setNegativeButton("취소") { dialog, id -> dialog.cancel() }
+
+//        val dialog = builder.create()
+//        dialog.setOnShowListener(object : DialogInterface.OnShowListener {
+//            override fun onShow(arg0: DialogInterface?) {
+//                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.BLACK)
+//                dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.BLACK)
+//            }
+//        })
+
+
         builder.create().show()
     }
 
